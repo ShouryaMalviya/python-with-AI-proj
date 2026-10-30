@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CodeGuard Lite — Automated Python Security & Code Reviewer</title>
+  
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  
+  <!-- Custom Cyber Theme CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+  <!-- Background Ambient Glows -->
+  <div class="ambient-glow glow-top-right"></div>
+  <div class="ambient-glow glow-mid-left"></div>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="{{ url_for('index') }}" class="brand-logo">
+        <div class="brand-icon">
+          <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <span>CodeGuard</span>
+        <span class="brand-badge">Lite</span>
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="#scanner-section" class="nav-link"><i class="fa-solid fa-crosshairs"></i> Scanner</a></li>
+        <li><a href="#stats-section" class="nav-link"><i class="fa-solid fa-chart-simple"></i> Metrics</a></li>
+        <li><a href="#rules-section" class="nav-link"><i class="fa-solid fa-shield-virus"></i> Security Rules</a></li>
+      </ul>
+
+      <div class="nav-status-badge">
+        <span class="pulse-dot"></span>
+        <span>AST Engine Active</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Flash Messages Container -->
+  <div class="container alert-container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">
+            <span><i class="fa-solid fa-circle-exclamation"></i> {{ message }}</span>
+            <button type="button" class="btn-remove-file" onclick="this.parentElement.remove()">&times;</button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </div>
+
+  <main>
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="container">
+        <div class="hero-pill">
+          <i class="fa-solid fa-lock"></i> Pure Static AST Analysis &bull; Zero Execution Risk
+        </div>
+        <h1 class="hero-title">
+          Automated Python Code Reviewer <br>
+          <span class="gradient-text">&amp; Security Scanner</span>
+        </h1>
+        <p class="hero-subtitle">
+          Fortify your Python code against critical vulnerabilities, dangerous dynamic executions, 
+          and PEP compliance misses in milliseconds using native Abstract Syntax Tree parsing.
+        </p>
+        <div class="hero-actions">
+          <a href="#scanner-section" class="btn btn-primary">
+            <i class="fa-solid fa-bolt"></i> Start Scanning Now
+          </a>
+          <button type="button" id="btn-load-sample-hero" class="btn btn-secondary">
+            <i class="fa-solid fa-vial-virus"></i> Try Live Sample File
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Statistics Cards -->
+    <section id="stats-section">
+      <div class="container">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon-wrapper">
+              <i class="fa-solid fa-shield-cat"></i>
+            </div>
+            <div class="stat-info">
+              <span class="stat-value">100%</span>
+              <span class="stat-label">Zero Code Execution</span>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon-wrapper">
+              <i class="fa-solid fa-radar"></i>
+            </div>
+            <div class="stat-info">
+              <span class="stat-value">6 Rules</span>
+              <span class="stat-label">Vulnerability &amp; Quality Checks</span>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon-wrapper">
+              <i class="fa-solid fa-gauge-high"></i>
+            </div>
+            <div class="stat-info">
+              <span class="stat-value">&lt; 15 ms</span>
+              <span class="stat-label">Static Inspection Latency</span>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon-wrapper">
+              <i class="fa-solid fa-file-shield"></i>
+            </div>
+            <div class="stat-info">
+              <span class="stat-value">Instant</span>
+              <span class="stat-label">Downloadable .MD Audit</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Code Scanner Section -->
+    <section id="scanner-section" class="scanner-section">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag">Static Inspection Engine</span>
+          <h2 class="section-title">Scan Your Python Code</h2>
+          <p class="section-desc">
+            Upload your Python script or paste code directly. The file is analyzed strictly through AST tokens without execution.
+          </p>
+        </div>
+
+        <div class="scanner-box">
+          <!-- Input Mode Tabs -->
+          <div class="scanner-tabs">
+            <button type="button" class="tab-btn active" id="tab-upload">
+              <i class="fa-solid fa-cloud-arrow-up"></i> Upload .py File
+            </button>
+            <button type="button" class="tab-btn" id="tab-paste">
+              <i class="fa-solid fa-code"></i> Paste Source Code
+            </button>
+          </div>
+
+          <!-- Main Scan Form -->
+          <form id="scan-form" action="{{ url_for('scan') }}" method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="ajax" value="1">
+
+            <!-- Tab 1: Drag & Drop File Upload -->
+            <div id="upload-panel" class="upload-panel">
+              <div class="dropzone" id="dropzone">
+                <input type="file" name="file" id="file-input" accept=".py" style="display: none;">
+                <div class="dropzone-icon">
+                  <i class="fa-solid fa-file-code"></i>
+                </div>
+                <h3 class="dropzone-title">Drag &amp; drop your Python file here</h3>
+                <p class="dropzone-subtitle">or click to browse your local file system</p>
+                <button type="button" class="btn btn-secondary btn-sm" id="btn-browse-file">
+                  <i class="fa-regular fa-folder-open"></i> Choose .py File
+                </button>
+                <div class="dropzone-meta" style="margin-top: 1.5rem;">
+                  <span><i class="fa-solid fa-check"></i> Supported: .py</span>
+                  <span><i class="fa-solid fa-shield"></i> Max Size: 2 MB</span>
+                  <span><i class="fa-solid fa-ban"></i> Never Executed</span>
+                </div>
+              </div>
+
+              <!-- Selected File Preview Badge -->
+              <div id="file-badge" class="file-selected-badge">
+                <div class="file-info-group">
+                  <i class="fa-brands fa-python file-py-icon"></i>
+                  <div class="file-details">
+                    <div class="file-name" id="file-name-display">script.py</div>
+                    <div class="file-size" id="file-size-display">0 KB</div>
+                  </div>
+                </div>
+                <button type="button" class="btn-remove-file" id="btn-remove-file" title="Remove file">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Tab 2: Direct Code Paste -->
+            <div id="paste-panel" class="code-paste-area">
+              <div class="code-editor-header">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                  <i class="fa-brands fa-python" style="color: var(--neon-green);"></i>
+                  <input type="text" name="filename_custom" id="filename-custom" class="editor-filename-input" placeholder="script.py" value="untrusted_script.py">
+                </div>
+                <button type="button" class="btn btn-secondary btn-sm" id="btn-load-sample">
+                  <i class="fa-solid fa-vial"></i> Load Sample Vulnerable Code
+                </button>
+              </div>
+              <textarea name="code" id="code-input" class="code-textarea" placeholder="# Paste your Python code here...&#10;def hello_world():&#10;    print('Safe static analysis')"></textarea>
+            </div>
+
+            <!-- Scanner Actions Bar -->
+            <div class="scanner-actions">
+              <div class="security-assurance">
+                <i class="fa-solid fa-shield-halved"></i>
+                <span>AST isolation active. Source code is never executed or imported.</span>
+              </div>
+              <button type="submit" id="btn-submit-scan" class="btn btn-primary">
+                <i class="fa-solid fa-magnifying-glass-chart"></i> Scan Code Now
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- Security Rules Showcase -->
+    <section id="rules-section" class="rules-section">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag">Static Ruleset</span>
+          <h2 class="section-title">Built-In Security &amp; Quality Rules</h2>
+          <p class="section-desc">
+            CodeGuard Lite inspects Python Abstract Syntax Trees for dangerous patterns, architecture vulnerabilities, and documentation compliance.
+          </p>
+        </div>
+
+        <div class="rules-grid">
+          <!-- Rule 1: eval() -->
+          <div class="rule-card">
+            <div class="rule-header">
+              <div class="rule-icon-box" style="background: var(--critical-bg); color: var(--critical); border: 1px solid var(--critical-border);">
+                <i class="fa-solid fa-skull-crossbones"></i>
+              </div>
+              <span class="badge badge-critical">Critical</span>
+            </div>
+            <h3 class="rule-title">Dangerous 'eval()' Execution</h3>
+            <p class="rule-desc">
+              Detects arbitrary code evaluation that allows attackers to execute arbitrary system commands via untrusted strings.
+            </p>
+            <div class="rule-code-preview">
+              <code>result = eval(user_input)  # Flagged</code>
+            </div>
+          </div>
+
+          <!-- Rule 2: exec() -->
+          <div class="rule-card">
+            <div class="rule-header">
+              <div class="rule-icon-box" style="background: var(--critical-bg); color: var(--critical); border: 1px solid var(--critical-border);">
+                <i class="fa-solid fa-terminal"></i>
+              </div>
+              <span class="badge badge-critical">Critical</span>
+            </div>
+            <h3 class="rule-title">Dangerous 'exec()' Execution</h3>
+            <p class="rule-desc">
+              Identifies dynamic execution of multi-statement code strings, introducing arbitrary code injection risks.
+            </p>
+            <div class="rule-code-preview">
+              <code>exec(f"cache_{key} = val")  # Flagged</code>
+            </div>
+          </div>
+
+          <!-- Rule 3: Wildcard Imports -->
+          <div class="rule-card">
+            <div class="rule-header">
+              <div class="rule-icon-box" style="background: var(--warning-bg); color: var(--warning); border: 1px solid var(--warning-border);">
+                <i class="fa-solid fa-asterisk"></i>
+              </div>
+              <span class="badge badge-warning">Warning</span>
+            </div>
+            <h3 class="rule-title">Wildcard Imports (*)</h3>
+            <p class="rule-desc">
+              Detects namespace pollution and accidental symbol shadowing that violates PEP 8 and degrades code maintainability.
+            </p>
+            <div class="rule-code-preview">
+              <code>from math import *  # Flagged</code>
+            </div>
+          </div>
+
+          <!-- Rule 4: Function Docstring -->
+          <div class="rule-card">
+            <div class="rule-header">
+              <div class="rule-icon-box" style="background: var(--info-bg); color: var(--info); border: 1px solid var(--info-border);">
+                <i class="fa-solid fa-book-bookmark"></i>
+              </div>
+              <span class="badge badge-info">Info</span>
+            </div>
+            <h3 class="rule-title">Missing Function Docstrings</h3>
+            <p class="rule-desc">
+              Flags public functions lacking PEP 257 compliant docstrings describing their behavior, arguments, and return types.
+            </p>
+            <div class="rule-code-preview">
+              <code>def process_data(data): ... # Flagged</code>
+            </div>
+          </div>
+
+          <!-- Rule 5: Class Docstring -->
+          <div class="rule-card">
+            <div class="rule-header">
+              <div class="rule-icon-box" style="background: var(--info-bg); color: var(--info); border: 1px solid var(--info-border);">
+                <i class="fa-solid fa-cube"></i>
+              </div>
+              <span class="badge badge-info">Info</span>
+            </div>
+            <h3 class="rule-title">Missing Class Docstrings</h3>
+            <p class="rule-desc">
+              Flags public classes without class-level architectural docstrings outlining responsibilities and public interfaces.
+            </p>
+            <div class="rule-code-preview">
+              <code>class AuthManager: ... # Flagged</code>
+            </div>
+          </div>
+
+          <!-- Rule 6: Syntax Errors -->
+          <div class="rule-card">
+            <div class="rule-header">
+              <div class="rule-icon-box" style="background: var(--critical-bg); color: var(--critical); border: 1px solid var(--critical-border);">
+                <i class="fa-solid fa-bug"></i>
+              </div>
+              <span class="badge badge-critical">Critical</span>
+            </div>
+            <h3 class="rule-title">Python Syntax Errors</h3>
+            <p class="rule-desc">
+              Intercepts invalid Python syntax safely before compilation, pinpointing exact line numbers, offsets, and cause.
+            </p>
+            <div class="rule-code-preview">
+              <code>def broken_func(  # Line &amp; offset isolated</code>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Animated Scanning Progress Modal -->
+  <div id="progress-modal" class="progress-modal">
+    <div class="progress-card">
+      <div class="progress-scanner-icon">
+        <i class="fa-solid fa-satellite-dish"></i>
+      </div>
+      <h3 class="progress-title">Analyzing Abstract Syntax Tree</h3>
+      <p class="progress-status-text" id="progress-status-text">Tokenizing source code...</p>
+
+      <div class="progress-bar-container">
+        <div class="progress-bar-fill" id="progress-bar-fill"></div>
+      </div>
+
+      <ul class="progress-steps-list">
+        <li class="progress-step active" id="step-1">
+          <i class="fa-solid fa-circle-notch fa-spin"></i>
+          <span>1. Initializing AST tokenizer &amp; syntax check</span>
+        </li>
+        <li class="progress-step" id="step-2">
+          <i class="fa-regular fa-circle"></i>
+          <span>2. Inspecting dangerous call nodes (eval / exec)</span>
+        </li>
+        <li class="progress-step" id="step-3">
+          <i class="fa-regular fa-circle"></i>
+          <span>3. Auditing module namespaces &amp; wildcard imports</span>
+        </li>
+        <li class="progress-step" id="step-4">
+          <i class="fa-regular fa-circle"></i>
+          <span>4. Verifying PEP 257 docstrings for functions &amp; classes</span>
+        </li>
+        <li class="progress-step" id="step-5">
+          <i class="fa-regular fa-circle"></i>
+          <span>5. Synthesizing security audit metrics &amp; report</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Clean Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-brand">
+          <div class="brand-icon" style="width: 28px; height: 28px; font-size: 0.85rem;">
+            <i class="fa-solid fa-shield-halved"></i>
+          </div>
+          <span>CodeGuard Lite</span>
+          <span class="brand-badge">v1.0</span>
+        </div>
+
+        <ul class="footer-nav">
+          <li><a href="#scanner-section">Scanner</a></li>
+          <li><a href="#rules-section">Rules</a></li>
+          <li><a href="#stats-section">Metrics</a></li>
+        </ul>
+
+        <div>
+          <span style="color: var(--neon-green); font-size: 0.8rem;">
+            <i class="fa-solid fa-shield"></i> 100% Client-Side Privacy Guaranteed
+          </span>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>&copy; 2026 CodeGuard Lite. Built with Python 3.10+, Flask &amp; Python AST. Untrusted code is never executed.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Custom JavaScript -->
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

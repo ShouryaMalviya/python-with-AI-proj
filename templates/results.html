@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Security Audit Results — {{ filename }} | CodeGuard Lite</title>
+
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <!-- Custom Cyber Theme CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+  <!-- Ambient Glows -->
+  <div class="ambient-glow glow-top-right"></div>
+  <div class="ambient-glow glow-mid-left"></div>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="{{ url_for('index') }}" class="brand-logo">
+        <div class="brand-icon">
+          <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <span>CodeGuard</span>
+        <span class="brand-badge">Lite</span>
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="{{ url_for('index') }}#scanner-section" class="nav-link"><i class="fa-solid fa-arrow-left"></i> New Scan</a></li>
+        <li><a href="{{ url_for('download_report', scan_id=scan_id) }}" class="nav-link" style="color: var(--neon-green);"><i class="fa-solid fa-download"></i> Export Markdown</a></li>
+      </ul>
+
+      <div class="nav-status-badge">
+        <span class="pulse-dot"></span>
+        <span>Audit Complete</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="container results-header-section">
+    <!-- Audit Meta Header Bar -->
+    <div class="audit-meta-bar">
+      <div class="audit-file-info">
+        <div class="audit-file-icon">
+          <i class="fa-brands fa-python"></i>
+        </div>
+        <div>
+          <div class="audit-file-title">{{ filename }}</div>
+          <div class="audit-meta-tags">
+            <span><i class="fa-regular fa-clock"></i> {{ timestamp }}</span>
+            <span><i class="fa-solid fa-code-commit"></i> {{ stats.total_lines }} Lines Total</span>
+            <span><i class="fa-solid fa-file-lines"></i> {{ stats.code_lines }} Code Lines</span>
+            <span><i class="fa-solid fa-cubes"></i> {{ stats.function_count }} Functions</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="audit-actions">
+        <a href="{{ url_for('index') }}" class="btn btn-secondary btn-sm">
+          <i class="fa-solid fa-rotate-left"></i> Scan Another File
+        </a>
+        <a href="{{ url_for('download_report', scan_id=scan_id) }}" class="btn btn-primary btn-sm">
+          <i class="fa-solid fa-file-arrow-down"></i> Download Markdown Report (.md)
+        </a>
+      </div>
+    </div>
+
+    <!-- Executive Summary & Metrics Grid -->
+    <div class="audit-summary-row">
+      <!-- Security Score Gauge Card -->
+      <div class="score-card">
+        <div class="score-dial grade-{{ summary.grade }}">
+          <div class="score-number">{{ summary.score }}</div>
+          <div class="score-grade">GRADE {{ summary.grade }}</div>
+        </div>
+        <div class="score-label">Security Health Score</div>
+        <div class="score-sub">
+          {% if summary.score >= 85 %}
+            Healthy code posture
+          {% elif summary.score >= 60 %}
+            Remediation advised
+          {% else %}
+            Critical risks detected
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- 4-Box Metrics Counter -->
+      <div class="metrics-grid">
+        <!-- Total Issues -->
+        <div class="metric-box total-box">
+          <div class="metric-top">
+            <span class="metric-title">Total Issues Found</span>
+            <div class="metric-box-icon"><i class="fa-solid fa-list-check"></i></div>
+          </div>
+          <div class="metric-count">{{ summary.total_issues }}</div>
+        </div>
+
+        <!-- Critical Issues -->
+        <div class="metric-box critical-box">
+          <div class="metric-top">
+            <span class="metric-title">Critical Vulnerabilities</span>
+            <div class="metric-box-icon"><i class="fa-solid fa-skull"></i></div>
+          </div>
+          <div class="metric-count">{{ summary.critical }}</div>
+        </div>
+
+        <!-- Warnings -->
+        <div class="metric-box warning-box">
+          <div class="metric-top">
+            <span class="metric-title">Quality Warnings</span>
+            <div class="metric-box-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+          </div>
+          <div class="metric-count">{{ summary.warnings }}</div>
+        </div>
+
+        <!-- Informational Suggestions -->
+        <div class="metric-box info-box">
+          <div class="metric-top">
+            <span class="metric-title">PEP 257 Suggestions</span>
+            <div class="metric-box-icon"><i class="fa-solid fa-circle-info"></i></div>
+          </div>
+          <div class="metric-count">{{ summary.info }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Issues Filter & Search Bar -->
+    <div class="filter-bar">
+      <div class="filter-pills">
+        <button type="button" class="filter-pill active" data-filter="all">
+          All Issues ({{ summary.total_issues }})
+        </button>
+        <button type="button" class="filter-pill" data-filter="critical">
+          Critical ({{ summary.critical }})
+        </button>
+        <button type="button" class="filter-pill" data-filter="warning">
+          Warnings ({{ summary.warnings }})
+        </button>
+        <button type="button" class="filter-pill" data-filter="info">
+          Info ({{ summary.info }})
+        </button>
+      </div>
+
+      <div class="filter-search">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="issue-search-input" class="search-input" placeholder="Search by line, keyword, or rule...">
+      </div>
+    </div>
+
+    <!-- Detailed Findings List -->
+    <div class="issues-container" id="issues-list">
+      {% if issues %}
+        {% for issue in issues %}
+          <div class="issue-card severity-{{ issue.severity }}" data-severity="{{ issue.severity }}" data-text="{{ issue.title|lower }} {{ issue.description|lower }} line {{ issue.line }}">
+            <div class="issue-card-header">
+              <div class="issue-title-group">
+                <span class="badge badge-{{ issue.severity }}">
+                  {% if issue.severity == 'critical' %}
+                    <i class="fa-solid fa-triangle-exclamation"></i> Critical
+                  {% elif issue.severity == 'warning' %}
+                    <i class="fa-solid fa-circle-exclamation"></i> Warning
+                  {% else %}
+                    <i class="fa-solid fa-circle-info"></i> Info
+                  {% endif %}
+                </span>
+                <h3 class="issue-title">{{ issue.title }}</h3>
+              </div>
+              <div class="issue-location">
+                <i class="fa-solid fa-crosshairs"></i> Line {{ issue.line }}:{{ issue.col }}
+              </div>
+            </div>
+
+            <p class="issue-desc">{{ issue.description }}</p>
+
+            {% if issue.snippet %}
+              <div class="issue-snippet-wrapper">
+                <div class="snippet-header">
+                  <span><i class="fa-solid fa-code"></i> Line {{ issue.line }} in {{ filename }}</span>
+                  <span>Offending Snippet</span>
+                </div>
+                <div class="snippet-code">{{ issue.snippet }}</div>
+              </div>
+            {% endif %}
+
+            <div class="remediation-box">
+              <div class="remediation-header">
+                <i class="fa-solid fa-wrench"></i> Recommended Solution
+              </div>
+              <div class="remediation-text">{{ issue.recommendation }}</div>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <!-- Clean State Display -->
+        <div class="clean-report-card">
+          <div class="clean-icon">
+            <i class="fa-solid fa-circle-check"></i>
+          </div>
+          <h2 class="clean-title">Zero Issues Detected!</h2>
+          <p class="clean-desc">
+            Your Python code passed all 6 CodeGuard Lite security and quality static checks. 
+            No dangerous <code>eval()</code>, <code>exec()</code>, wildcard imports, missing docstrings, or syntax errors were found.
+          </p>
+          <a href="{{ url_for('download_report', scan_id=scan_id) }}" class="btn btn-primary">
+            <i class="fa-solid fa-download"></i> Download Clean Audit Certificate (.md)
+          </a>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Collapsible Full Source Code Inspector -->
+    <div class="source-inspector-card">
+      <button type="button" class="inspector-toggle-btn" id="btn-toggle-inspector">
+        <span><i class="fa-solid fa-file-code"></i> Full Source Code Inspector ({{ stats.total_lines }} Lines)</span>
+        <i class="fa-solid fa-chevron-down"></i>
+      </button>
+
+      <div class="inspector-body" id="inspector-body">
+        <table class="source-line-table">
+          <tbody>
+            {% for line in source_lines %}
+              {% set line_num = loop.index %}
+              {% set line_issues = issues_by_line.get(line_num, []) %}
+              {% set row_class = "" %}
+              {% if line_issues %}
+                {% if line_issues|selectattr('severity', 'equalto', 'critical')|list %}
+                  {% set row_class = "has-critical" %}
+                {% elif line_issues|selectattr('severity', 'equalto', 'warning')|list %}
+                  {% set row_class = "has-warning" %}
+                {% else %}
+                  {% set row_class = "has-info" %}
+                {% endif %}
+              {% endif %}
+              <tr class="{{ row_class }}" id="src-line-{{ line_num }}">
+                <td class="line-num">{{ line_num }}</td>
+                <td class="line-content">{{ line }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- Clean Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-brand">
+          <div class="brand-icon" style="width: 28px; height: 28px; font-size: 0.85rem;">
+            <i class="fa-solid fa-shield-halved"></i>
+          </div>
+          <span>CodeGuard Lite</span>
+          <span class="brand-badge">Audit</span>
+        </div>
+
+        <ul class="footer-nav">
+          <li><a href="{{ url_for('index') }}">Home</a></li>
+          <li><a href="{{ url_for('index') }}#scanner-section">New Scan</a></li>
+          <li><a href="{{ url_for('download_report', scan_id=scan_id) }}">Download Markdown</a></li>
+        </ul>
+
+        <div>
+          <span style="color: var(--neon-green); font-size: 0.8rem;">
+            <i class="fa-solid fa-shield"></i> AST Safe Analysis Completed
+          </span>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>&copy; 2026 CodeGuard Lite. Analysis performed via pure Abstract Syntax Tree inspection.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Custom JavaScript -->
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
+
